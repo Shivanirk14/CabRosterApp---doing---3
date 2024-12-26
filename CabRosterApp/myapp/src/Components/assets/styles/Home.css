@@ -1,0 +1,65 @@
+/* src/assets/styles/Home.css */
+
+/* Global Container for the App */
+.app-container {
+  background-color: #f4f9fc; /* Main background color for the app */
+  min-height: 100vh;          /* Ensure the app fills the height of the viewport */
+  font-family: 'Sofia', sans-serif; /* Set the font to Sofia */
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar container */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Light box-shadow */
+}
+
+/* Left side: SmartRoute */
+.navbar-left {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Right side: Navbar links */
+.navbar-right {
+  display: flex;
+  gap: 20px;
+}
+
+/* Navbar links */
+.navbar-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.navbar-link:hover {
+  text-decoration: underline;
+}
+
+/* Styling for Home Section */
+.home-section {
+  padding: 60px 20px;
+  text-align: center;
+  height: calc(100vh - 100px); /* Adjust the height to leave space for navbar */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.home-title {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.home-description {
+  font-size: 18px;
+  color: #555;
+}
