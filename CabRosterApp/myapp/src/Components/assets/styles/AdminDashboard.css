@@ -1,57 +1,110 @@
 .admin-dashboard {
-    padding: 20px;
+    font-family: 'Arial', sans-serif;
     background-color: #f4f9fc;
-    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #cbdef1;
+    padding: 20px;
+    color: white;
+    border-radius: 8px;
+  }
+  
+  h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  .button-container {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .logout-btn,
+  .cab-booking-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .logout-btn {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .logout-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+  }
+  
+  .cab-booking-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .cab-booking-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
   }
   
   .user-list {
     margin-top: 20px;
   }
   
-  .user-table {
+  table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-bottom: 20px;
   }
   
-  .user-table th,
-  .user-table td {
-    padding: 10px;
+  th, td {
+    padding: 12px;
     text-align: left;
-    border: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
   }
   
-  .user-table th {
-    background-color: #007bff;
+  th {
+    background-color: #003366;
     color: white;
+  }
+  
+  button {
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
   }
   
   .approve-btn {
     background-color: #28a745;
     color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
+  }
+  
+  .approve-btn:hover {
+    background-color: #218838;
   }
   
   .reject-btn {
     background-color: #dc3545;
     color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
   }
   
-  .approve-btn:hover,
   .reject-btn:hover {
-    opacity: 0.8;
+    background-color: #c82333;
   }
   
   .error-message {
     color: red;
     font-weight: bold;
-    margin-top: 10px;
+    margin-bottom: 20px;
   }
   

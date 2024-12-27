@@ -38,11 +38,16 @@ namespace CabRosterApp.Controllers
                 return BadRequest("Invalid shift or nodal point.");
             }
 
+            if (bookingRequest.StartDate == DateTime.MinValue || bookingRequest.EndDate == DateTime.MinValue)
+            {
+                return BadRequest("StartDate and EndDate must be provided.");
+            }
+
             try
             {
                 foreach (var date in bookingRequest.BookingDates)
                 {
-                    // Check if there's already an existing booking for the same date, shift, and nodal point
+                    // Check for conflicting bookings on the same date for the same shift and nodal point.
                     var existingBooking = await _context.CabBookings.AnyAsync(cb =>
                         cb.UserId == bookingRequest.UserId &&
                         cb.ShiftId == bookingRequest.ShiftId &&
@@ -51,24 +56,25 @@ namespace CabRosterApp.Controllers
 
                     if (existingBooking)
                     {
-                        // Return Conflict if a booking exists for the given date
                         return Conflict(new { Error = $"A booking already exists for {date.ToShortDateString()}." });
                     }
 
-                    // Create a new booking record for the date
+                    // Create a new CabBooking object with the provided StartDate and EndDate
                     var newBooking = new CabBooking
                     {
                         UserId = bookingRequest.UserId,
                         ShiftId = bookingRequest.ShiftId,
                         BookingDate = date,
                         Status = "Booked",
-                        NodalPointId = bookingRequest.NodalPointId
+                        NodalPointId = bookingRequest.NodalPointId,
+                        StartDate = bookingRequest.StartDate, // Set the StartDate
+                        EndDate = bookingRequest.EndDate      // Set the EndDate
                     };
 
-                    _context.CabBookings.Add(newBooking); // Add new booking to the context
+                    _context.CabBookings.Add(newBooking);
                 }
 
-                await _context.SaveChangesAsync(); // Save all changes to the database
+                await _context.SaveChangesAsync();
 
                 return Ok(new { Success = true, Message = "Cab booked successfully!" });
             }
@@ -77,6 +83,7 @@ namespace CabRosterApp.Controllers
                 return StatusCode(500, new { Error = ex.Message });
             }
         }
+
 
         // GET /api/CabBooking/list
         [HttpGet("list")]
@@ -87,53 +94,59 @@ namespace CabRosterApp.Controllers
                 var bookings = await _context.CabBookings
                     .Include(b => b.Shift)
                     .Include(b => b.User)
+                    .Include(b => b.NodalPoint)  // Ensure this is included for nodal point data
                     .Select(b => new
                     {
                         b.Id,
-                        b.BookingDate,
-                        Shift = b.Shift.ShiftTime,  // Retrieve Shift Time
+                        StartDate = b.StartDate,   // Include StartDate
+                        EndDate = b.EndDate,       // Include EndDate
+                        Shift = b.Shift.ShiftTime,
                         b.Status,
-                        User = b.User.Name,         // Fetch User Name
-                        b.NodalPointId
+                        User = b.User.Name,
+                        NodalPoint = b.NodalPoint.LocationName // Return nodal point as needed
                     })
                     .ToListAsync();
 
-                return Ok(bookings);
+                return Ok(bookings);  // Return list of bookings with StartDate and EndDate
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Error = ex.Message });
+                return StatusCode(500, new { Error = ex.Message });  // Handle exceptions
             }
         }
 
-        // PUT /api/CabBooking/update-status/{id}
-        [HttpPut("update-status/{id}")]
-        public async Task<IActionResult> UpdateBookingStatus(int id, [FromBody] string status)
+
+
+
+
+        // GET /api/CabBooking/status/{id}
+        [HttpGet("status/{id}")]
+        public async Task<IActionResult> GetBookingStatus(int id)
         {
-            // Ensure valid status
-            if (string.IsNullOrWhiteSpace(status) || (status != "Approved" && status != "Rejected"))
-            {
-                return BadRequest(new { Error = "Invalid status. Use 'Approved' or 'Rejected'." });
-            }
-
-            try
-            {
-                var booking = await _context.CabBookings.FindAsync(id);
-                if (booking == null)
+            var booking = await _context.CabBookings
+                .Where(cb => cb.Id == id)
+                .Select(cb => new
                 {
-                    return NotFound(new { Error = "Booking not found." });
-                }
+                    cb.Id,
+                    StartDate = cb.StartDate, // Show Start Date
+                    EndDate = cb.EndDate,     // Show End Date
+                    cb.Status,
+                    ShiftTime = cb.Shift.ShiftTime,
+                    NodalPoint = cb.NodalPoint.LocationName,  // Assuming NodalPoint has a Name property
+                    UserName = cb.User.Name
+                })
+                .FirstOrDefaultAsync();
 
-                booking.Status = status;  // Update the booking status
-                await _context.SaveChangesAsync();
-
-                return Ok(new { Message = $"Booking status updated to {status}." });
-            }
-            catch (Exception ex)
+            if (booking == null)
             {
-                return StatusCode(500, new { Error = ex.Message });
+                return NotFound(new { Error = "Booking not found." });
             }
+
+            return Ok(booking);  // This will include the StartDate and EndDate
         }
+
+
+
 
         // POST /api/CabBooking/book-date-range
         [HttpPost("book-date-range")]
@@ -144,13 +157,11 @@ namespace CabRosterApp.Controllers
                 return BadRequest("Invalid booking request.");
             }
 
-            // Validate date range
             if (request.StartDate >= request.EndDate)
             {
                 return BadRequest("The start date must be earlier than the end date.");
             }
 
-            // Check for any overlapping bookings within the given date range
             var existingBooking = await _context.CabBookings
                 .AnyAsync(cb =>
                     cb.UserId == request.UserId &&
@@ -164,20 +175,19 @@ namespace CabRosterApp.Controllers
                 return Conflict(new { Error = "There is already an existing booking within the selected date range." });
             }
 
-            // If everything is fine, create the booking
             var booking = new CabBooking
             {
-                UserId = request.UserId,  // Assuming UserId is now a string in the model
+                UserId = request.UserId,
                 ShiftId = request.ShiftId,
-                BookingDate = request.StartDate,  // Or you may create multiple bookings if needed
+                BookingDate = request.StartDate,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
                 Status = "Booked",
                 NodalPointId = request.NodalPointId
             };
 
-            _context.CabBookings.Add(booking);  // Add the booking to the context
-            await _context.SaveChangesAsync();  // Save to the database
+            _context.CabBookings.Add(booking);
+            await _context.SaveChangesAsync();
 
             return Ok(new { Success = true, Message = "Cab booking confirmed", bookingId = booking.Id });
         }

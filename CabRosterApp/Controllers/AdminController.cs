@@ -43,26 +43,35 @@ namespace CabRosterApp.Controllers
             return Ok(pendingBookings);
         }
 
-        // PUT: Approve or Reject a booking
-        [HttpPut("cab-bookings/{id}/status")]
-        public IActionResult UpdateCabBookingStatus(int id, [FromBody] string status)
+
+
+
+        // PUT /api/Admin/cab-bookings/{id}/status
+        [HttpPut("admin/cab-bookings/{id}/status")]
+        public async Task<IActionResult> UpdateBookingStatusByAdmin(int id, [FromBody] string status)
         {
-            if (status != "Approved" && status != "Rejected")
+            if (string.IsNullOrWhiteSpace(status) ||
+                (status != "Approved" && status != "Rejected"))
             {
                 return BadRequest(new { Error = "Invalid status. Use 'Approved' or 'Rejected'." });
             }
 
-            var booking = _context.CabBookings.Find(id);
+            var booking = await _context.CabBookings.FindAsync(id);
             if (booking == null)
             {
                 return NotFound(new { Error = "Booking not found." });
             }
 
             booking.Status = status;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return Ok(new { Message = $"Booking status updated to {status}.", BookingId = id });
+            return Ok(new { Message = $"Booking status updated to {status}.", bookingId = id });
         }
+
+
+
+
+
 
         // GET: List all employees
         [HttpGet("employees")]
